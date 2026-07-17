@@ -1,0 +1,40 @@
+{% extends "partials/admin_base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block page_title %}All Appointments{% endblock %}
+{% set active = 'appointments' %}
+
+{% block content %}
+<div class="page-header"><h1>Appointments</h1><p>Manage all patient appointments.</p></div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for appt in appointments %}
+      <tr>
+        <td style="font-weight:600">{{ appt.user.full_name if appt.user else 'N/A' }}</td>
+        <td>{{ appt.doctor_name }}</td>
+        <td>{{ appt.appointment_date }}</td>
+        <td>{{ appt.appointment_time }}</td>
+        <td><span class="badge badge-{{ appt.status|lower }}">{{ appt.status }}</span></td>
+        <td>
+          <form method="post" action="/admin/appointments/{{ appt.id }}/status" style="display:flex;gap:6px">
+            <select name="new_status" class="form-control" style="padding:5px 8px;font-size:12px;width:auto">
+              {% for s in ['Pending','Confirmed','Completed','Cancelled'] %}
+              <option value="{{ s }}" {% if appt.status == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if not appointments %}
+    <div style="text-align:center;padding:60px;color:var(--gray-500)">No appointments yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

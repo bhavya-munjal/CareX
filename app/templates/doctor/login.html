@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Doctor Login | CareBot</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body style="background:linear-gradient(135deg,#0F172A 0%,#1E3A5F 100%);min-height:100vh">
+<div class="auth-page" style="background:transparent">
+  <div class="auth-card" style="max-width:420px">
+    <div class="auth-logo">
+      <div class="logo" style="justify-content:center;gap:10px">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563EB"/><path d="M16 8v16M8 16h16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+        <span>CareBot <span style="color:var(--primary);font-weight:900">Doctor</span></span>
+      </div>
+    </div>
+    <h1 class="auth-title">Doctor Portal</h1>
+    <p class="auth-sub">Sign in to manage your consultations</p>
+    {% if error %}<div class="alert alert-danger">⚠ {{ error }}</div>{% endif %}
+    <form method="post" action="/doctor/login">
+      <div class="form-group"><label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" placeholder="doctor@carebot.com" required autofocus></div>
+      <div class="form-group"><label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Your password" required></div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In as Doctor</button>
+    </form>
+    <div style="text-align:center;margin-top:20px"><a href="/" style="font-size:13px;color:var(--gray-500)">← Back to CareBot</a></div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,129 @@
+{% extends "partials/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% set active = 'dashboard' %}
+
+{% block content %}
+<div class="welcome-banner">
+  <div>
+    <h2>Good day, {{ user.full_name.split()[0] }}! 👋</h2>
+    <p>Your personal AI health companion. Ask anything, track everything.</p>
+  </div>
+  <a href="/chat" class="btn" style="background:rgba(255,255,255,.2);color:white;border:1.5px solid rgba(255,255,255,.3);backdrop-filter:blur(4px)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Open AI Assistant
+  </a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Conversations</div>
+      <div class="stat-icon stat-icon-blue">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+    </div>
+    <div class="stat-value">{{ total_chats }}</div>
+    <a href="/chat" class="stat-link">Chat with CareBot →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Reports Generated</div>
+      <div class="stat-icon stat-icon-green">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      </div>
+    </div>
+    <div class="stat-value">{{ total_reports }}</div>
+    <a href="/health-history" class="stat-link">View all reports →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Current BMI</div>
+      <div class="stat-icon stat-icon-orange">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+    </div>
+    <div class="stat-value" style="font-size:22px">
+      {% if latest_bmi %}{{ latest_bmi.bmi }} <span style="font-size:13px;color:var(--gray-500);font-weight:500">{{ latest_bmi.category }}</span>{% else %}—{% endif %}
+    </div>
+    <a href="/bmi-calculator" class="stat-link">Calculate BMI →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Health History</div>
+      <div class="stat-icon stat-icon-blue">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+    </div>
+    <div class="stat-value" style="font-size:22px">View</div>
+    <a href="/health-history" class="stat-link">All sessions & reports →</a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Recent Chat Activity -->
+  <div class="card">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <h3>Recent Conversations</h3>
+      <a href="/chat" class="btn btn-primary btn-sm">+ New Chat</a>
+    </div>
+    <div class="card-body" style="padding:0">
+      {% if recent_chats %}
+      {% for c in recent_chats %}
+      <div style="padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:12px">
+        <div style="width:32px;height:32px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">💬</div>
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.user_message[:60] }}{% if c.user_message|length > 60 %}...{% endif %}</div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:2px">{{ c.timestamp.strftime('%d %b, %H:%M') if c.timestamp else '' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div style="padding:48px;text-align:center;color:var(--gray-500)">
+        <div style="font-size:36px;margin-bottom:8px">💬</div>
+        <p>No conversations yet.<br><a href="/chat" style="color:var(--primary)">Start chatting with CareBot</a></p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Reports + Quick Actions -->
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div class="card">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+        <h3>Recent Reports</h3>
+        <a href="/health-history" class="btn btn-outline btn-sm">View all</a>
+      </div>
+      <div class="card-body" style="padding:0">
+        {% if recent_reports %}
+        {% for r in recent_reports %}
+        <div style="padding:12px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;background:var(--success-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">📄</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--dark)">{{ r.report_title[:40] }}</div>
+              <div style="font-size:11px;color:var(--gray-500)">{{ r.created_at.strftime('%d %b %Y') if r.created_at else '' }}</div>
+            </div>
+          </div>
+          <a href="/reports/download/{{ r.report_path }}" class="btn btn-outline btn-sm">⬇</a>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="padding:36px;text-align:center;color:var(--gray-500);font-size:13px">
+          <div style="font-size:32px;margin-bottom:8px">📋</div>
+          Reports are generated after health conversations.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card card-body" style="background:linear-gradient(135deg,#2563EB,#0EA5E9);border:none">
+      <div style="color:white">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">💡 Did you know?</div>
+        <div style="font-size:13px;opacity:.85;line-height:1.6;margin-bottom:14px">After 10 messages, CareBot generates a complete PDF health report with diagnosis, diet plan, exercises, and doctor recommendations — ready to show your doctor.</div>
+        <a href="/chat" class="btn" style="background:rgba(255,255,255,.2);color:white;font-size:13px;border:1.5px solid rgba(255,255,255,.3)">Start a Conversation</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

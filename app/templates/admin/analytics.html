@@ -1,0 +1,27 @@
+{% extends "partials/admin_base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+{% set active = 'analytics' %}
+{% block content %}
+<div class="page-header"><h1>Analytics</h1><p>Platform usage insights.</p></div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-card-header"><div class="stat-card-title">Users</div><div class="stat-icon stat-icon-blue"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div><div class="stat-value">{{ total_users }}</div></div>
+  <div class="stat-card"><div class="stat-card-header"><div class="stat-card-title">Total Chats</div><div class="stat-icon stat-icon-orange"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div><div class="stat-value">{{ total_chats }}</div></div>
+  <div class="stat-card"><div class="stat-card-header"><div class="stat-card-title">Reports</div><div class="stat-icon stat-icon-green"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div></div><div class="stat-value">{{ total_reports }}</div></div>
+  <div class="stat-card"><div class="stat-card-header"><div class="stat-card-title">BMI Records</div><div class="stat-icon stat-icon-orange"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div></div><div class="stat-value">{{ total_bmi }}</div></div>
+</div>
+<div class="card" style="margin-top:24px">
+  <div class="card-header"><h3>BMI Distribution</h3></div>
+  <div class="card-body">
+    {% if bmi_stats %}
+    {% for cat, cnt in bmi_stats %}
+    {% set pct = ((cnt / total_bmi * 100)|int) if total_bmi > 0 else 0 %}
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-weight:600;font-size:14px">{{ cat }}</span><span style="color:var(--gray-500);font-size:13px">{{ cnt }} ({{ pct }}%)</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:{{ pct }}%"></div></div>
+    </div>
+    {% endfor %}
+    {% else %}<p style="color:var(--gray-500)">No BMI data yet.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

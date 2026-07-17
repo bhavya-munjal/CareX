@@ -1,0 +1,106 @@
+{% extends "partials/base.html" %}
+{% block title %}Health History{% endblock %}
+{% block page_title %}Health History{% endblock %}
+{% set active = 'history' %}
+
+{% block content %}
+<div class="page-header"><h1>Health History</h1><p>All your past conversations, sessions, and health reports.</p></div>
+
+<!-- Tabs -->
+<div style="display:flex;gap:4px;margin-bottom:24px;background:var(--gray-100);padding:4px;border-radius:var(--radius-sm);width:fit-content">
+  <button onclick="showTab('sessions')" id="tab-sessions" class="tab-btn active-tab">💬 Chat Sessions</button>
+  <button onclick="showTab('bmi')" id="tab-bmi" class="tab-btn">⚖️ BMI History</button>
+</div>
+
+<!-- Sessions Panel -->
+<div id="panel-sessions">
+  {% if session_data %}
+  <div style="display:flex;flex-direction:column;gap:12px">
+    {% for s in session_data %}
+    <div class="card" style="transition:box-shadow .2s" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+      <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0">
+          <div style="width:44px;height:44px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">💬</div>
+          <div style="min-width:0">
+            <div style="font-size:14px;font-weight:700;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px">
+              {{ s.first_msg[:80] }}{% if s.first_msg|length > 80 %}...{% endif %}
+            </div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:4px;display:flex;gap:14px">
+              <span>📅 {{ s.started_at.strftime('%d %b %Y, %H:%M') if s.started_at else 'N/A' }}</span>
+              <span>💬 {{ s.msg_count }} messages</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          {% if s.report %}
+          <span style="font-size:12px;background:var(--success-light);color:var(--success);padding:3px 10px;border-radius:999px;font-weight:600">📄 Report Ready</span>
+          <a href="/reports/download/{{ s.report.report_path }}" class="btn btn-primary btn-sm">⬇ Download</a>
+          {% else %}
+          <span style="font-size:12px;background:var(--gray-100);color:var(--gray-500);padding:3px 10px;border-radius:999px">No report</span>
+          {% endif %}
+          <a href="/health-history/session/{{ s.session_id }}" class="btn btn-outline btn-sm">View →</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card card-body" style="text-align:center;padding:80px 30px;color:var(--gray-500)">
+    <div style="font-size:56px;margin-bottom:16px">💬</div>
+    <h3 style="color:var(--dark);margin-bottom:8px">No conversations yet</h3>
+    <p>Start chatting with CareBot to build your health history.</p>
+    <a href="/chat" class="btn btn-primary" style="margin-top:16px">Start a Conversation</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- BMI Panel -->
+<div id="panel-bmi" style="display:none">
+  {% if bmi_records %}
+  <div class="card">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <h3>BMI Records</h3>
+      <a href="/bmi-calculator" class="btn btn-primary btn-sm">+ New Record</a>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Date</th><th>Height</th><th>Weight</th><th>BMI</th><th>Category</th></tr></thead>
+        <tbody>
+        {% for r in bmi_records %}
+        <tr>
+          <td style="color:var(--gray-500);font-size:13px">{{ r.created_at.strftime('%d %b %Y') if r.created_at else '' }}</td>
+          <td>{{ r.height }} cm</td>
+          <td>{{ r.weight }} kg</td>
+          <td><strong style="font-size:15px">{{ r.bmi }}</strong></td>
+          <td>
+            <span class="badge" style="{% if r.category == 'Normal Weight' %}background:var(--success-light);color:var(--success){% elif r.category == 'Underweight' %}background:var(--primary-light);color:var(--primary){% elif r.category == 'Overweight' %}background:var(--warning-light);color:var(--warning){% else %}background:var(--danger-light);color:var(--danger){% endif %}">
+              {{ r.category }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card card-body" style="text-align:center;padding:80px 30px;color:var(--gray-500)">
+    <div style="font-size:56px;margin-bottom:16px">⚖️</div>
+    <p>No BMI records yet. <a href="/bmi-calculator" style="color:var(--primary)">Calculate your BMI</a></p>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.tab-btn { padding:8px 16px;border:none;background:transparent;border-radius:6px;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;transition:all .15s; }
+.active-tab { background:white;color:var(--primary);box-shadow:var(--shadow); }
+</style>
+<script>
+function showTab(id) {
+  ['sessions','bmi'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = t===id ? '' : 'none';
+    document.getElementById('tab-'+t).className = 'tab-btn' + (t===id ? ' active-tab' : '');
+  });
+}
+</script>
+{% endblock %}

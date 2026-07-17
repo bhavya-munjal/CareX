@@ -1,0 +1,44 @@
+{% extends "partials/base.html" %}
+{% block title %}Payment Confirmed{% endblock %}
+{% block page_title %}Payment Confirmed{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;text-align:center;padding:20px 0">
+  <div style="font-size:72px;margin-bottom:16px;animation:pop .4s ease">✅</div>
+  <h1 style="font-size:28px;font-weight:900;color:var(--dark);margin-bottom:8px">Payment Successful!</h1>
+  <p style="font-size:15px;color:var(--gray-500);margin-bottom:28px">Your consultation has been booked. The doctor will begin your session shortly.</p>
+
+  <!-- Confirmation Card -->
+  <div class="card" style="text-align:left;margin-bottom:20px">
+    <div style="background:linear-gradient(135deg,var(--success),#15803D);padding:16px 20px;display:flex;align-items:center;gap:12px;border-radius:12px 12px 0 0">
+      <div style="font-size:28px">🎉</div>
+      <div>
+        <div style="color:white;font-weight:800;font-size:15px">Consultation Booked!</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">Transaction ID: {{ txn_id }}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      {% for label, val in [('Doctor', 'Dr. ' + doctor.full_name), ('Specialty', doctor.specialty), ('Patient', user.full_name), ('Amount Paid', '₹' + total|string), ('Status', 'Awaiting Doctor')] %}
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-100);font-size:14px">
+        <span style="color:var(--gray-500)">{{ label }}</span>
+        <span style="font-weight:700;color:{% if label == 'Status' %}var(--warning){% else %}var(--dark){% endif %}">{{ val }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Email notice -->
+  <div class="alert alert-info" style="text-align:left">
+    📧 <strong>Confirmation email sent</strong> to {{ user.email }} (check server console in dev mode)
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:center;margin-top:20px">
+    <a href="/appointments/my" class="btn btn-primary btn-lg">View My Appointments →</a>
+    {% if invoice %}
+    <a href="/invoice/download/{{ invoice.pdf_path }}" class="btn btn-outline btn-lg">⬇ Download Invoice</a>
+    {% endif %}
+  </div>
+</div>
+<style>
+@keyframes pop { 0%{transform:scale(.5);opacity:0} 80%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+</style>
+{% endblock %}

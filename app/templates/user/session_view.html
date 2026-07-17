@@ -1,0 +1,36 @@
+{% extends "partials/base.html" %}
+{% block title %}Session{% endblock %}
+{% block page_title %}Session Detail{% endblock %}
+{% set active = 'history' %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+  <div>
+    <a href="/health-history" style="font-size:13px;color:var(--gray-500)">← Health History</a>
+    <h1 style="font-size:20px;font-weight:800;color:var(--dark);margin-top:4px">Chat Session</h1>
+  </div>
+  {% if report %}
+  <a href="/reports/download/{{ report.report_path }}" class="btn btn-primary">⬇ Download PDF Report</a>
+  {% else %}
+  <form method="post" action="/chat/generate-report">
+    <input type="hidden" name="_session_override" value="{{ session_id }}">
+    <button type="submit" class="btn btn-outline">📄 Generate Report</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body" style="display:flex;flex-direction:column;gap:14px;max-height:70vh;overflow-y:auto">
+    {% for c in chats %}
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+      <div style="max-width:75%;background:var(--primary);color:white;padding:11px 15px;border-radius:18px 18px 4px 18px;font-size:14px;line-height:1.6">{{ c.user_message }}</div>
+      <span style="font-size:11px;color:var(--gray-400)">{{ c.timestamp.strftime('%H:%M') if c.timestamp else '' }}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
+      <div style="max-width:75%;background:white;border:1px solid var(--gray-200);padding:11px 15px;border-radius:18px 18px 18px 4px;font-size:14px;line-height:1.65;color:var(--dark);box-shadow:var(--shadow)">{{ c.ai_response | replace('\n','<br>') | replace('**','') | safe }}</div>
+      <span style="font-size:11px;color:var(--gray-400)">CareBot • {{ c.timestamp.strftime('%H:%M') if c.timestamp else '' }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | CareBot</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body style="background:var(--gray-900)">
+<div class="auth-page" style="background:var(--gray-900)">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo" style="justify-content:center">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563EB"/><path d="M16 8v16M8 16h16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+        CareBot Admin
+      </div>
+    </div>
+    <h1 class="auth-title">Admin Access</h1>
+    <p class="auth-sub">Restricted area — authorized personnel only</p>
+
+    {% if error %}
+    <div class="alert alert-danger">⚠ {{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/admin/login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" placeholder="admin@carebot.com" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Admin password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In as Admin</button>
+    </form>
+    <div style="text-align:center;margin-top:20px">
+      <a href="/" style="font-size:13px;color:var(--gray-500)">← Back to main site</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

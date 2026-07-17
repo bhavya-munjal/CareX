@@ -1,0 +1,249 @@
+{% extends "partials/base.html" %}
+{% block title %}AI Health Assistant{% endblock %}
+{% block page_title %}AI Health Assistant{% endblock %}
+{% set active = 'chat' %}
+
+{% block content %}
+<div style="display:flex;gap:20px;height:calc(100vh - 120px)">
+
+  <!-- ── Sidebar: session controls + report ── -->
+  <div style="width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:12px">
+
+    <div class="card card-body" style="padding:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Session</div>
+      <form method="post" action="/chat/new-session">
+        <button type="submit" class="btn btn-outline btn-block btn-sm">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+          New Conversation
+        </button>
+      </form>
+      <div style="font-size:12px;color:var(--gray-500);margin-top:10px;line-height:1.6">
+        {% if msg_count == 0 %}
+          Start by describing your symptoms, pain, or asking a health question.
+        {% else %}
+          <span style="font-weight:600;color:var(--primary)">{{ msg_count }}</span> messages in this session.
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Quick starters -->
+    {% if msg_count == 0 %}
+    <div class="card card-body" style="padding:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Suggested Topics</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        {% for q in [
+          'I have fever and body ache',
+          'My lower back is hurting badly',
+          'I feel stressed and anxious',
+          'What causes frequent headaches?',
+          'How to improve my sleep quality?',
+          'I have knee pain when climbing stairs',
+          'What foods help reduce inflammation?',
+          'I feel very fatigued lately'
+        ] %}
+        <button class="quick-starter" onclick="setMsg(this)">{{ q }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Report section -->
+    {% if msg_count > 0 %}
+    <div class="card card-body" style="padding:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Health Report</div>
+
+      {% if existing_report %}
+      <div style="background:var(--success-light);border:1px solid #86efac;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#14532d">
+        ✓ Report generated
+      </div>
+      <a href="/chat/download/{{ existing_report.report_path }}" class="btn btn-primary btn-block btn-sm">
+        ⬇ Download PDF Report
+      </a>
+      <div style="font-size:11px;color:var(--gray-500);margin-top:8px;text-align:center">{{ existing_report.report_title[:40] }}</div>
+      {% elif show_report_prompt %}
+      <div class="report-prompt-card">
+        <div style="font-size:22px;margin-bottom:6px">📋</div>
+        <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px">Generate Your Report</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:12px;line-height:1.5">Based on {{ msg_count }} messages, CareBot can generate a detailed health report with diagnosis, diet plan, exercises & more.</div>
+        <form method="post" action="/chat/generate-report">
+          <button type="submit" class="btn btn-primary btn-block" style="font-size:13px">
+            📄 Generate PDF Report
+          </button>
+        </form>
+      </div>
+      {% else %}
+      <div style="font-size:12px;color:var(--gray-500);line-height:1.6">
+        After <strong>{{ [10 - msg_count, 0]|max }}</strong> more message{% if [10 - msg_count, 0]|max != 1 %}s{% endif %}, you can generate a detailed PDF health report to share with your doctor.
+      </div>
+      {% if msg_count >= 3 %}
+      <form method="post" action="/chat/generate-report" style="margin-top:10px">
+        <button type="submit" class="btn btn-outline btn-block btn-sm">Generate Report Now</button>
+      </form>
+      {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <a href="/health-history" style="font-size:13px;color:var(--gray-500);text-align:center;padding:8px">View past conversations →</a>
+  </div>
+
+  <!-- ── Main Chat Area ── -->
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+    <div class="chat-messages" id="chatMessages">
+      {% if not chats %}
+      <div class="chat-empty">
+        <div style="font-size:56px;margin-bottom:16px">🩺</div>
+        <h3 style="color:var(--dark);font-size:18px;margin-bottom:8px">Hello, {{ user.full_name.split()[0] }}! I'm CareBot.</h3>
+        <p style="color:var(--gray-500);max-width:400px;line-height:1.7">I can help you with <strong>symptom assessment</strong>, <strong>pain guidance</strong>, <strong>mental wellness</strong>, <strong>health questions</strong>, and more. What's on your mind today?</p>
+        <p style="font-size:13px;color:var(--gray-400);margin-top:12px">← Pick a topic from the left, or type your question below.</p>
+      </div>
+      {% else %}
+      <!-- Bot greeting offset -->
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="bot-avatar">🩺</div>
+          <span style="font-size:12px;font-weight:600;color:var(--gray-500)">CareBot</span>
+        </div>
+        <div class="chat-bubble bot" style="margin-left:32px">Hello {{ user.full_name.split()[0] }}! How can I help you today? 😊</div>
+      </div>
+      {% for chat in chats %}
+      <!-- User message -->
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <div class="chat-bubble user">{{ chat.user_message }}</div>
+        <div class="chat-time">{{ chat.timestamp.strftime('%H:%M') if chat.timestamp else '' }}</div>
+      </div>
+      <!-- Bot response -->
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="bot-avatar">🩺</div>
+          <span style="font-size:12px;font-weight:600;color:var(--gray-500)">CareBot • {{ chat.timestamp.strftime('%H:%M') if chat.timestamp else '' }}</span>
+        </div>
+        <div class="chat-bubble bot" style="margin-left:32px">{{ chat.ai_response | replace('\n', '<br>') | replace('**', '') | safe }}</div>
+      </div>
+      {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Input Area -->
+    <form method="post" action="/chat" class="chat-input-area" id="chatForm">
+      <textarea name="message" id="msgInput" class="chat-textarea" placeholder="Describe your symptoms, ask about pain, diet, wellness..." rows="1" required></textarea>
+      <button type="submit" class="chat-send-btn" id="sendBtn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </form>
+    <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:6px 0">CareBot provides health information only — not medical diagnosis or treatment. Always consult a doctor for medical advice.</div>
+  </div>
+</div>
+
+<style>
+.quick-starter {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--gray-700);
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s;
+  font-family: inherit;
+}
+.quick-starter:hover { background: var(--primary-light); border-color: var(--primary-border); color: var(--primary); }
+
+.bot-avatar { width: 26px; height: 26px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px 14px 0 0;
+}
+.chat-bubble { max-width: 78%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.65; }
+.chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; border-radius: 18px 18px 4px 18px; }
+.chat-bubble.bot  { background: white; color: var(--dark); align-self: flex-start; border-radius: 18px 18px 18px 4px; box-shadow: var(--shadow); }
+.chat-time { font-size: 11px; color: var(--gray-400); }
+.chat-empty { text-align: center; padding: 60px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  align-items: flex-end;
+}
+.chat-textarea {
+  flex: 1;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  max-height: 120px;
+  overflow-y: auto;
+  transition: border-color .2s;
+}
+.chat-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.chat-send-btn {
+  width: 44px; height: 44px;
+  background: var(--primary);
+  border: none; border-radius: 12px;
+  color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.chat-send-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+.report-prompt-card {
+  background: linear-gradient(135deg, #EFF6FF, #E0F2FE);
+  border: 1.5px solid var(--primary-border);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+</style>
+
+<script>
+const msgs = document.getElementById('chatMessages');
+if (msgs) msgs.scrollTop = msgs.scrollHeight;
+
+function setMsg(el) {
+  const ta = document.getElementById('msgInput');
+  ta.value = el.textContent.trim();
+  ta.focus();
+  autoResize(ta);
+}
+
+const ta = document.getElementById('msgInput');
+if (ta) {
+  ta.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (this.value.trim()) document.getElementById('chatForm').submit();
+    }
+  });
+  ta.addEventListener('input', function() { autoResize(this); });
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+document.getElementById('chatForm')?.addEventListener('submit', function() {
+  document.getElementById('sendBtn').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+  document.getElementById('sendBtn').disabled = true;
+});
+</script>
+{% endblock %}

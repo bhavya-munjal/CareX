@@ -1,0 +1,30 @@
+{% extends "partials/admin_base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}All Reports{% endblock %}
+{% set active = 'reports' %}
+
+{% block content %}
+<div class="page-header"><h1>Health Reports</h1><p>All generated patient reports.</p></div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Patient</th><th>Report Type</th><th>File</th><th>Generated</th></tr></thead>
+      <tbody>
+      {% for r in reports %}
+      <tr>
+        <td style="font-weight:600">{{ r.user.full_name if r.user else 'N/A' }}</td>
+        <td><span class="badge" style="background:var(--primary-light);color:var(--primary)">{{ r.report_type }}</span></td>
+        <td style="font-size:12px;color:var(--gray-500)">{{ r.report_path }}</td>
+        <!-- <td style="font-size:12px;color:var(--gray-500)"><a href="/reports/download/{{ r.report_path }}" class="btn btn-primary btn-sm">⬇ Download</a></td> -->
+        <td style="color:var(--gray-500);font-size:13px">{{ r.created_at.strftime('%d %b %Y, %H:%M') if r.created_at else '—' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if not reports %}
+    <div style="text-align:center;padding:60px;color:var(--gray-500)">No reports generated yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

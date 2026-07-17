@@ -1,0 +1,67 @@
+{% extends "partials/base.html" %}
+{% block title %}AI Chat Assistant{% endblock %}
+{% block page_title %}AI Health Assistant{% endblock %}
+{% set active = 'chatbot' %}
+
+{% block content %}
+<div class="page-header">
+  <h1>AI Health Assistant</h1>
+  <p>Ask me anything about your health. I'm here to educate and inform.</p>
+</div>
+
+<div class="chat-container">
+  <div class="chat-messages" id="chatMessages">
+    {% if not chats %}
+    <div class="chat-empty">
+      <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <p style="font-weight:600;margin-bottom:4px">Start a conversation</p>
+      <p style="font-size:13px">Ask me about symptoms, conditions, wellness tips, and more.</p>
+      <div class="quick-questions" style="justify-content:center;margin-top:20px">
+        {% for q in ['What causes fever?','How can I improve sleep?','What is diabetes?','How to reduce stress?','What is hypertension?','Why do I get headaches?'] %}
+        <button class="quick-q" onclick="setQuestion('{{ q }}')">{{ q }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    {% for chat in chats %}
+    <div style="display:flex;flex-direction:column;align-items:flex-end">
+      <div class="chat-bubble user">{{ chat.user_message }}</div>
+      <div class="chat-bubble-time" style="text-align:right;color:var(--gray-500)">{{ chat.timestamp.strftime('%H:%M') if chat.timestamp else '' }}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start">
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;font-weight:600">🤖 CareBot</div>
+      <div class="chat-bubble bot">{{ chat.ai_response }}</div>
+      <div class="chat-bubble-time" style="color:var(--gray-500)">{{ chat.timestamp.strftime('%H:%M') if chat.timestamp else '' }}</div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+
+  <form method="post" action="/chatbot" class="chat-input-area">
+    <input type="text" name="message" class="form-control" id="msgInput" placeholder="Type your health question..." required autocomplete="off">
+    <button type="submit" class="btn btn-primary" style="border-radius:50%;width:44px;height:44px;padding:0;flex-shrink:0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </form>
+</div>
+
+{% if chats %}
+<div style="margin-top:12px">
+  <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">Quick questions:</div>
+  <div class="quick-questions">
+    {% for q in ['What causes fever?','How can I improve sleep?','What is diabetes?','How to reduce stress?','What is hypertension?'] %}
+    <button class="quick-q" onclick="setQuestion('{{ q }}')">{{ q }}</button>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<script>
+function setQuestion(q) {
+  document.getElementById('msgInput').value = q;
+  document.getElementById('msgInput').focus();
+}
+const msgs = document.getElementById('chatMessages');
+if (msgs) msgs.scrollTop = msgs.scrollHeight;
+</script>
+{% endblock %}

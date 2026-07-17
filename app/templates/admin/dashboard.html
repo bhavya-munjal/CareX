@@ -1,0 +1,75 @@
+{% extends "partials/admin_base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% set active = 'dashboard' %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header"><div class="stat-card-title">Total Users</div><div class="stat-icon stat-icon-blue"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div></div>
+    <div class="stat-value">{{ total_users }}</div>
+    <a href="/admin/users" class="stat-link">Manage users →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-header"><div class="stat-card-title">Total Chats</div><div class="stat-icon stat-icon-orange"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
+    <div class="stat-value">{{ total_chats }}</div>
+    <a href="/admin/analytics" class="stat-link">View analytics →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-header"><div class="stat-card-title">Reports Generated</div><div class="stat-icon stat-icon-green"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div></div>
+    <div class="stat-value">{{ total_reports }}</div>
+    <a href="/admin/reports" class="stat-link">View reports →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-header"><div class="stat-card-title">Avg. Chats/User</div><div class="stat-icon stat-icon-blue"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div></div>
+    <div class="stat-value">{{ ((total_chats / total_users)|int) if total_users > 0 else 0 }}</div>
+    <a href="/admin/analytics" class="stat-link">Analytics →</a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h3>Most Active Users</h3></div>
+    {% if top_users %}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>User</th><th>Email</th><th>Chats</th></tr></thead>
+        <tbody>
+        {% for u, chat_cnt in top_users %}
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:28px;height:28px;font-size:11px">{{ u.full_name[0].upper() }}</div><span style="font-weight:600">{{ u.full_name }}</span></div></td>
+          <td style="color:var(--gray-500);font-size:13px">{{ u.email }}</td>
+          <td><span class="badge" style="background:var(--primary-light);color:var(--primary)">{{ chat_cnt }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body" style="color:var(--gray-500);text-align:center;padding:40px">No users yet.</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <h3>Recent Reports</h3>
+      <a href="/admin/reports" class="btn btn-outline btn-sm">View all</a>
+    </div>
+    {% if recent_reports %}
+    <div style="padding:0">
+      {% for r in recent_reports %}
+      <div style="padding:12px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:12px">
+        <div style="width:32px;height:32px;background:var(--success-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📄</div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.report_title[:45] }}</div>
+          <div style="font-size:11px;color:var(--gray-500)">{{ r.user.full_name if r.user else 'N/A' }} • {{ r.created_at.strftime('%d %b %Y') if r.created_at else '' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card-body" style="color:var(--gray-500);text-align:center;padding:40px">No reports yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

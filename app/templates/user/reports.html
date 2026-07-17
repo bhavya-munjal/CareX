@@ -1,0 +1,50 @@
+{% extends "partials/base.html" %}
+{% block title %}Health Reports{% endblock %}
+{% block page_title %}Health Reports{% endblock %}
+{% set active = 'reports' %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <h1>Health Reports</h1>
+    <p>Download your generated health reports.</p>
+  </div>
+  <div style="display:flex;gap:10px">
+    <a href="/chat" class="btn btn-primary">+ New Assessment</a>
+    <form method="post" action="/reports/generate-bmi" style="display:inline">
+      <button type="submit" class="btn btn-outline">📊 BMI Report</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Generated Reports</h3></div>
+  <div class="card-body">
+    {% if reports %}
+    {% for report in reports %}
+    <div class="report-row">
+      <div class="report-info">
+        <div class="report-icon">📄</div>
+        <div>
+          <div style="font-weight:600;font-size:14px">{{ report.report_type }}</div>
+          <div style="font-size:12px;color:var(--gray-500)">Generated: {{ report.created_at.strftime('%d %B %Y, %H:%M') if report.created_at else 'N/A' }}</div>
+        </div>
+      </div>
+      <a href="/reports/download/{{ report.report_path }}" class="btn btn-primary btn-sm">⬇ Download</a>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div style="text-align:center;padding:60px 30px;color:var(--gray-500)">
+      <div style="font-size:48px;margin-bottom:16px">📋</div>
+      <h3 style="color:var(--dark);margin-bottom:8px">No Reports Yet</h3>
+      <p>Complete a symptom assessment to generate your first health report.</p>
+      <a href="/chat" class="btn btn-primary" style="margin-top:16px">Start a Chat</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="alert alert-info" style="margin-top:16px;font-size:13px">
+  💡 Reports are generated from your symptom assessments and BMI records. Go to <a href="/chat">Symptom Checker</a> to run an assessment and generate a PDF report.
+</div>
+{% endblock %}

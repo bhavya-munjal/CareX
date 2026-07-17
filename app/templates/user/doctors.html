@@ -1,0 +1,65 @@
+{% extends "partials/base.html" %}
+{% block title %}Find a Doctor{% endblock %}
+{% block page_title %}Find a Doctor{% endblock %}
+{% set active = 'doctors' %}
+{% block content %}
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div><h1>Find a Doctor</h1><p>Book a paid online consultation with verified specialists.</p></div>
+  <a href="/appointments/my" class="btn btn-outline">My Appointments →</a>
+</div>
+
+<!-- Specialty filter -->
+{% if specialties %}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+  <a href="/doctors" class="btn btn-sm {% if not selected_specialty %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+  {% for s in specialties %}
+  <a href="/doctors?specialty={{ s }}" class="btn btn-sm {% if selected_specialty == s %}btn-primary{% else %}btn-outline{% endif %}">{{ s }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if doctors %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px">
+  {% for doc in doctors %}
+  <div class="card" style="transition:all .2s;overflow:hidden" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+    <!-- Card Header -->
+    <div style="background:linear-gradient(135deg,#2563EB,#0EA5E9);padding:20px;position:relative">
+      <div style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:white;margin-bottom:10px;border:3px solid rgba(255,255,255,.4)">
+        {{ doc.full_name[0].upper() }}
+      </div>
+      <div style="color:white;font-size:17px;font-weight:800">Dr. {{ doc.full_name }}</div>
+      <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:2px">{{ doc.specialty }}</div>
+      <div style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);color:white;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700">
+        ⭐ {{ doc.rating }}
+      </div>
+    </div>
+    <!-- Card Body -->
+    <div class="card-body">
+      {% if doc.qualification %}
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">🎓 {{ doc.qualification }}</div>
+      {% endif %}
+      {% if doc.experience_years %}
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">💼 {{ doc.experience_years }}+ years experience</div>
+      {% endif %}
+      {% if doc.bio %}
+      <div style="font-size:13px;color:var(--gray-700);line-height:1.6;margin-bottom:14px">{{ doc.bio[:120] }}{% if doc.bio|length > 120 %}...{% endif %}</div>
+      {% endif %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--gray-200)">
+        <div>
+          <div style="font-size:20px;font-weight:900;color:var(--dark)">₹{{ doc.fee|int }}</div>
+          <div style="font-size:11px;color:var(--gray-500)">per consultation</div>
+        </div>
+        <a href="/doctors/{{ doc.id }}/book" class="btn btn-primary">Book Now →</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card card-body" style="text-align:center;padding:80px">
+  <div style="font-size:56px;margin-bottom:16px">👨‍⚕️</div>
+  <h3 style="color:var(--dark);margin-bottom:8px">No doctors available</h3>
+  <p style="color:var(--gray-500)">Please check back later or try a different specialty.</p>
+</div>
+{% endif %}
+{% endblock %}

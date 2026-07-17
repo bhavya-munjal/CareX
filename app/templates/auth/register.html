@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register | CareBot</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card" style="max-width:520px">
+    <div class="auth-logo">
+      <a class="logo" href="/">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563EB"/><path d="M16 8v16M8 16h16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+        CareBot
+      </a>
+    </div>
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-sub">Start your AI health journey today</p>
+
+    {% if error %}
+    <div class="alert alert-danger">⚠ {{ error }}</div>
+    {% endif %}
+
+    <div class="alert alert-info" style="font-size:13px">
+      📋 By registering, you agree that CareBot is for informational purposes only and is not a substitute for professional medical advice.
+    </div>
+
+    <form method="post" action="/register">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="full_name" class="form-control" placeholder="John Doe" required>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control" placeholder="john@email.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mobile Number</label>
+          <input type="tel" name="phone" class="form-control" placeholder="+1 234 567 8900">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input type="date" name="dob" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <div class="gender-options">
+            <div class="gender-option"><input type="radio" name="gender" id="m" value="Male" required><label for="m">Male</label></div>
+            <div class="gender-option"><input type="radio" name="gender" id="f" value="Female"><label for="f">Female</label></div>
+            <div class="gender-option"><input type="radio" name="gender" id="o" value="Other"><label for="o">Other</label></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account</button>
+    </form>
+    <div class="auth-footer">Already have an account? <a href="/login">Sign in</a></div>
+  </div>
+</div>
+</body>
+</html>

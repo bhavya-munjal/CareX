@@ -1,0 +1,95 @@
+{% extends "partials/base.html" %}
+{% block title %}BMI Calculator{% endblock %}
+{% block page_title %}BMI Calculator{% endblock %}
+{% set active = 'bmi' %}
+
+{% block content %}
+<div class="page-header">
+  <h1>BMI Calculator</h1>
+  <p>Calculate your Body Mass Index and track your health progress.</p>
+</div>
+
+<div class="grid-2" style="align-items:start">
+  <div>
+    <div class="card">
+      <div class="card-header"><h3>Calculate Your BMI</h3></div>
+      <div class="card-body">
+        <form method="post" action="/bmi-calculator">
+          <div class="form-group">
+            <label class="form-label">Height (cm)</label>
+            <input type="number" name="height" class="form-control" placeholder="e.g., 170" min="50" max="300" step="0.1" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Weight (kg)</label>
+            <input type="number" name="weight" class="form-control" placeholder="e.g., 68" min="1" max="500" step="0.1" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Calculate BMI</button>
+        </form>
+      </div>
+    </div>
+
+    {% if bmi_result %}
+    <div class="card" style="margin-top:20px">
+      <div class="card-body bmi-result-card">
+        <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">Your BMI Score</div>
+        <div class="bmi-value">{{ bmi_result.bmi }}</div>
+        <div class="bmi-category" style="color:{% if bmi_result.category == 'Normal Weight' %}var(--success){% elif bmi_result.category == 'Underweight' %}var(--accent){% else %}var(--danger){% endif %}">
+          {{ bmi_result.category }}
+        </div>
+        <div style="font-size:13px;color:var(--gray-500);margin-top:8px">Height: {{ bmi_result.height }} cm | Weight: {{ bmi_result.weight }} kg</div>
+
+        <div class="bmi-scale" style="margin:24px 0 8px">
+          {% set pct = ((bmi_result.bmi - 10) / 30 * 100) | int %}
+          {% set pct = [pct, 0] | max %}
+          {% set pct = [pct, 100] | min %}
+          <div class="bmi-marker" style="left:{{ pct }}%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500)">
+          <span>Underweight<br>&lt;18.5</span>
+          <span>Normal<br>18.5–24.9</span>
+          <span>Overweight<br>25–29.9</span>
+          <span>Obese<br>≥30</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <form method="post" action="/reports/generate-bmi">
+        <button type="submit" class="btn btn-outline">📄 Generate BMI Report PDF</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>BMI History</h3></div>
+    {% if records %}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Date</th><th>Height</th><th>Weight</th><th>BMI</th><th>Category</th></tr></thead>
+        <tbody>
+        {% for r in records %}
+        <tr>
+          <td style="font-size:13px;color:var(--gray-500)">{{ r.created_at.strftime('%d %b %Y') if r.created_at else '' }}</td>
+          <td>{{ r.height }} cm</td>
+          <td>{{ r.weight }} kg</td>
+          <td><strong>{{ r.bmi }}</strong></td>
+          <td>
+            <span class="badge" style="{% if r.category == 'Normal Weight' %}background:var(--success-light);color:var(--success){% elif r.category == 'Underweight' %}background:var(--primary-light);color:var(--primary){% else %}background:var(--danger-light);color:var(--danger){% endif %}">
+              {{ r.category }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body" style="text-align:center;padding:60px 30px;color:var(--gray-500)">
+      <div style="font-size:40px;margin-bottom:12px">⚖️</div>
+      <p>No BMI records yet. Calculate your BMI to start tracking.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

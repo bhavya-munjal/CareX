@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareBot — AI-Powered Healthcare Assistant</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── Landing-specific ── */
+.land-nav {
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-200);
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 60px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.land-logo { display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;color:var(--primary);text-decoration:none; }
+.land-links { display:flex;align-items:center;gap:28px; }
+.land-links a { font-size:14px;font-weight:500;color:var(--gray-700);transition:color .15s;text-decoration:none; }
+.land-links a:hover { color:var(--primary); }
+.land-actions { display:flex;gap:10px;align-items:center; }
+
+/* Hero */
+.hero-wrap { background:linear-gradient(135deg,#EFF6FF 0%,#E0F2FE 50%,#F0FDFA 100%);padding:80px 60px 60px; }
+.hero-grid { max-width:1140px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center; }
+.hero-badge { display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:white;padding:5px 14px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:20px;letter-spacing:.3px; }
+.hero-h1 { font-size:50px;font-weight:900;color:var(--dark);line-height:1.12;margin-bottom:18px; }
+.hero-h1 span { color:var(--primary); }
+.hero-sub { font-size:16px;color:var(--gray-500);line-height:1.75;margin-bottom:30px;max-width:480px; }
+.hero-checks { list-style:none;margin-bottom:34px;display:flex;flex-direction:column;gap:10px; }
+.hero-checks li { display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:var(--gray-700); }
+.hero-checks li::before { content:"✓";width:22px;height:22px;background:var(--success);color:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0; }
+.hero-btns { display:flex;gap:12px;flex-wrap:wrap; }
+.hero-visual { position:relative; }
+.hero-card { background:white;border-radius:20px;padding:28px;box-shadow:0 20px 60px rgba(37,99,235,.15);border:1px solid var(--gray-200); }
+.hero-card-title { font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:8px; }
+.hero-chat-bubble { padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;margin-bottom:8px; }
+.hero-chat-user { background:var(--primary);color:white;border-radius:14px 14px 4px 14px;margin-left:20%; }
+.hero-chat-bot { background:var(--gray-50);color:var(--dark);border:1px solid var(--gray-200);border-radius:14px 14px 14px 4px; }
+.hero-stat-row { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px; }
+.hero-stat { text-align:center;padding:12px 8px;background:var(--gray-50);border-radius:10px; }
+.hero-stat-num { font-size:20px;font-weight:900;color:var(--primary); }
+.hero-stat-lbl { font-size:11px;color:var(--gray-500);margin-top:2px; }
+
+/* Features */
+.feat-section { padding:80px 60px;background:white; }
+.feat-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1140px;margin:40px auto 0; }
+.feat-card { padding:24px 20px;border:1.5px solid var(--gray-200);border-radius:14px;background:white;transition:all .2s;cursor:default; }
+.feat-card:hover { border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-3px); }
+.feat-icon { width:52px;height:52px;border-radius:12px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px; }
+.feat-card h3 { font-size:14px;font-weight:700;color:var(--dark);margin-bottom:6px; }
+.feat-card p { font-size:12px;color:var(--gray-500);line-height:1.6; }
+
+/* Disclaimer */
+.disclaimer-section { padding:0 60px 60px; }
+.disclaimer-box { max-width:860px;margin:0 auto;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:14px;padding:24px 28px;display:flex;gap:16px;align-items:flex-start; }
+
+/* CTA */
+.cta-section { padding:72px 60px;background:linear-gradient(135deg,#1D4ED8,#0EA5E9);text-align:center; }
+
+/* Mobile fixes for landing */
+@media (max-width:900px) {
+  .land-nav { padding:0 20px; }
+  .land-links { display:none; }
+  .hero-wrap { padding:48px 20px 40px; }
+  .hero-grid { grid-template-columns:1fr; gap:32px; }
+  .hero-h1 { font-size:32px; }
+  .hero-visual { display:none; }
+  .feat-section { padding:56px 20px; }
+  .feat-grid { grid-template-columns:1fr 1fr; }
+  .disclaimer-section { padding:0 20px 48px; }
+  .cta-section { padding:56px 20px; }
+}
+@media (max-width:480px) {
+  .feat-grid { grid-template-columns:1fr; }
+  .hero-btns { flex-direction:column; }
+  .hero-btns .btn { width:100%;justify-content:center; }
+}
+</style>
+</head>
+<body style="background:white">
+
+<!-- NAV -->
+<nav class="land-nav">
+  <a class="land-logo" href="/">
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563EB"/><path d="M16 8v16M8 16h16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+    CareBot
+  </a>
+  <div class="land-links">
+    <a href="#features">Features</a>
+    <a href="#disclaimer">Disclaimer</a>
+  </div>
+  <div class="land-actions">
+    <a href="/login" class="btn btn-outline btn-sm">Login</a>
+    <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-wrap">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-badge">🩺 AI-Powered Healthcare Platform</div>
+      <h1 class="hero-h1">Your Personal <span>AI Health</span> Companion</h1>
+      <p class="hero-sub">Get instant symptom assessment, track your health history, and receive personalized wellness guidance — all in one place.</p>
+      <ul class="hero-checks">
+        <li>AI Symptom Assessment & Health Chat</li>
+        <li>Mental Wellness & Pain Guidance</li>
+        <li>PDF Health Reports</li>
+        <li>BMI Tracking & Health History</li>
+      </ul>
+      <div class="hero-btns">
+        <a href="/register" class="btn btn-primary btn-lg">Get Started Free →</a>
+        <a href="/login" class="btn btn-outline btn-lg">Sign In</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="hero-card-title">🤖 CareBot AI in Action</div>
+        <div class="hero-chat-bubble hero-chat-user">I have fever and body ache for 2 days</div>
+        <div class="hero-chat-bubble hero-chat-bot">Based on your symptoms, this may suggest a viral infection. I recommend rest, hydration, and monitoring your temperature. If fever exceeds 103°F, please seek medical attention...</div>
+        <div class="hero-chat-bubble hero-chat-user">Can you generate a report?</div>
+        <div class="hero-chat-bubble hero-chat-bot">📄 Generating your health report with diagnosis, diet plan, exercises, and wellness recommendations...</div>
+        <div class="hero-stat-row">
+          <div class="hero-stat"><div class="hero-stat-num">AI</div><div class="hero-stat-lbl">Powered</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">PDF</div><div class="hero-stat-lbl">Reports</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">24/7</div><div class="hero-stat-lbl">Available</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="feat-section" id="features">
+  <div style="text-align:center;max-width:600px;margin:0 auto">
+    <h2 style="font-size:32px;font-weight:900;color:var(--dark);margin-bottom:10px">Everything Your Health Needs</h2>
+    <p style="color:var(--gray-500);font-size:15px;line-height:1.7">A complete AI-powered healthcare platform at your fingertips</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon">🔍</div><h3>AI Symptom Analysis</h3><p>Describe symptoms, get risk assessment, possible conditions, and self-care advice instantly.</p></div>
+    <div class="feat-card"><div class="feat-icon">💬</div><h3>Health Chat AI</h3><p>Ask any health question. CareBot explains conditions, treatments, and wellness tips clearly.</p></div>
+    <div class="feat-card"><div class="feat-icon">📄</div><h3>Detailed PDF Reports</h3><p>Auto-generated health reports with diagnosis, diet plan, exercises, and wellness recommendations.</p></div>
+    <div class="feat-card"><div class="feat-icon">🧘</div><h3>Mental Wellness</h3><p>Mood tracking, stress assessment, breathing exercises, and personalized relaxation guidance.</p></div>
+    <div class="feat-card"><div class="feat-icon">💪</div><h3>Pain Assistant</h3><p>Neck, back, shoulder, knee pain — get targeted exercises, yoga, and posture correction tips.</p></div>
+    <div class="feat-card"><div class="feat-icon">⚖️</div><h3>BMI Tracker</h3><p>Calculate and track Body Mass Index with history, categories, and trend analysis.</p></div>
+  </div>
+</section>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer-section" id="disclaimer">
+  <div class="disclaimer-box">
+    <div style="font-size:26px;flex-shrink:0">⚠️</div>
+    <div>
+      <div style="font-size:14px;font-weight:800;color:#92400E;margin-bottom:6px">Medical Disclaimer</div>
+      <div style="font-size:13px;color:#78350F;line-height:1.75">This platform is intended only for <strong>informational and educational purposes</strong>. CareBot AI does not provide medical diagnosis, treatment, or prescriptions. Always consult a licensed healthcare professional for medical advice. For emergencies, call 112 immediately.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 style="font-size:34px;font-weight:900;color:white;margin-bottom:12px">Start Your Health Journey Today</h2>
+  <p style="font-size:16px;color:rgba(255,255,255,.8);margin-bottom:28px">Free to register. AI-powered. Available 24/7.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    <a href="/register" class="btn btn-lg" style="background:white;color:var(--primary);font-weight:700">Create Free Account →</a>
+    <a href="/login" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:white;border:1.5px solid rgba(255,255,255,.4)">Sign In</a>
+  </div>
+</section>
+
+<footer style="background:#0F172A;color:rgba(255,255,255,.5);padding:28px 60px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px">
+  <div style="display:flex;align-items:center;gap:8px">
+    <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="6" fill="#2563EB"/><path d="M16 8v16M8 16h16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+    <span style="color:white;font-weight:700">CareBot</span> — AI Healthcare Assistant
+  </div>
+  <div style="display:flex;gap:20px">
+    <a href="/login" style="color:rgba(255,255,255,.5);text-decoration:none">Patient Login</a>
+    <a href="/admin/login" style="color:rgba(255,255,255,.5);text-decoration:none">Admin</a>
+  </div>
+  <div>The Future of Personal Health © 2026</div>
+</footer>
+</body>
+</html>

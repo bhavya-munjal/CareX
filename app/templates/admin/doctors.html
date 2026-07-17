@@ -1,0 +1,67 @@
+{% extends "partials/admin_base.html" %}
+{% block title %}Doctors{% endblock %}
+{% block page_title %}Manage Doctors{% endblock %}
+{% set active = 'doctors' %}
+
+{% block content %}
+<div class="page-header"><h1>Doctors</h1><p>Add and manage available doctors for appointments.</p></div>
+
+{% if success %}<div class="alert alert-success">✓ {{ success }}</div>{% endif %}
+
+<div class="grid-2" style="align-items:start">
+  <div class="card">
+    <div class="card-header"><h3>Add New Doctor</h3></div>
+    <div class="card-body">
+      <form method="post" action="/admin/doctors/add">
+        <div class="form-group">
+          <label class="form-label">Doctor Name</label>
+          <input type="text" name="name" class="form-control" placeholder="Dr. Smith" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Specialty</label>
+          <select name="specialty" class="form-control" required>
+            <option value="">Select specialty</option>
+            {% for s in ['General Physician','Cardiologist','Neurologist','Orthopedic','Dermatologist','Psychiatrist','Pediatrician','Gynecologist','ENT Specialist','Ophthalmologist','Diabetologist','Pulmonologist'] %}
+            <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Add Doctor</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Doctor List</h3></div>
+    {% if doctors %}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Name</th><th>Specialty</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for doc in doctors %}
+        <tr>
+          <td style="font-weight:600">{{ doc.name }}</td>
+          <td style="color:var(--gray-500)">{{ doc.specialty }}</td>
+          <td>
+            <span class="badge" style="{% if doc.available == 'Yes' %}background:var(--success-light);color:var(--success){% else %}background:var(--gray-100);color:var(--gray-500){% endif %}">
+              {{ 'Available' if doc.available == 'Yes' else 'Unavailable' }}
+            </span>
+          </td>
+          <td>
+            <form method="post" action="/admin/doctors/{{ doc.id }}/toggle" style="display:inline">
+              <button type="submit" class="btn btn-sm {% if doc.available == 'Yes' %}btn-danger{% else %}btn-success{% endif %}">
+                {{ 'Disable' if doc.available == 'Yes' else 'Enable' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body" style="text-align:center;color:var(--gray-500);padding:40px">No doctors added yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

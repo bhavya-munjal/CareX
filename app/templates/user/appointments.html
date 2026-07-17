@@ -1,0 +1,87 @@
+{% extends "partials/base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+{% set active = 'appointments' %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Book Appointment</h1>
+  <p>Select a doctor and time to book your appointment.</p>
+</div>
+
+{% if success %}
+<div class="alert alert-success">✓ {{ success }}</div>
+{% endif %}
+
+<div class="grid-2" style="align-items:start">
+  <div class="card">
+    <div class="card-header"><h3>Book New Appointment</h3></div>
+    <div class="card-body">
+      <form method="post" action="/appointments">
+        <div class="form-group">
+          <label class="form-label">Select Doctor</label>
+          <select name="doctor_name" class="form-control" required>
+            <option value="">-- Choose a Doctor --</option>
+            {% for doc in doctors %}
+            <option value="{{ doc.name }} ({{ doc.specialty }})">{{ doc.name }} — {{ doc.specialty }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Appointment Date</label>
+          <input type="date" name="appointment_date" class="form-control" required min="{{ now_date if now_date else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Time</label>
+          <select name="appointment_time" class="form-control" required>
+            <option value="">-- Select Time --</option>
+            {% for t in ['09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM'] %}
+            <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if not doctors %}
+        <div class="alert alert-warning">No doctors available at the moment. Please check back later.</div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary btn-block" {% if not doctors %}disabled{% endif %}>Book Appointment</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>My Appointments</h3></div>
+    {% if appointments %}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Doctor</th><th>Date & Time</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for appt in appointments %}
+        <tr>
+          <td>
+            <div style="font-weight:600;font-size:14px">{{ appt.doctor_name }}</div>
+          </td>
+          <td style="font-size:13px;color:var(--gray-500)">
+            {{ appt.appointment_date }}<br>{{ appt.appointment_time }}
+          </td>
+          <td><span class="badge badge-{{ appt.status|lower }}">{{ appt.status }}</span></td>
+          <td>
+            {% if appt.status not in ['Cancelled', 'Completed'] %}
+            <form method="post" action="/appointments/{{ appt.id }}/cancel" style="display:inline">
+              <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body" style="text-align:center;padding:60px 30px;color:var(--gray-500)">
+      <div style="font-size:40px;margin-bottom:12px">📅</div>
+      <p>No appointments yet. Book your first appointment above.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

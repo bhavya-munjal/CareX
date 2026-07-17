@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Consultation | CareBot Doctor</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body{background:var(--gray-50)}
+.consult-layout{display:grid;grid-template-columns:1fr 380px;gap:20px;padding:20px;max-width:1400px;margin:0 auto;height:100vh;box-sizing:border-box}
+.chat-panel{display:flex;flex-direction:column;background:white;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden}
+.chat-topbar{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;background:white}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;background:var(--gray-50)}
+.bubble-patient{background:var(--primary);color:white;padding:10px 14px;border-radius:16px 16px 16px 4px;max-width:72%;font-size:14px;line-height:1.6;align-self:flex-start}
+.bubble-doctor{background:white;color:var(--dark);padding:10px 14px;border-radius:16px 16px 4px 16px;max-width:72%;font-size:14px;line-height:1.6;align-self:flex-end;box-shadow:var(--shadow);border:1px solid var(--gray-200)}
+.msg-time{font-size:11px;color:var(--gray-400);margin-top:3px}
+.side-panel{display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.rx-form input,.rx-form textarea,.rx-form select{width:100%;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box}
+.rx-form input:focus,.rx-form textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.med-row{display:grid;grid-template-columns:2fr 1fr 1.2fr 1fr 32px;gap:6px;align-items:center;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div style="background:#0F172A;padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="/doctor/dashboard" style="color:rgba(255,255,255,.6);font-size:13px">← Dashboard</a>
+    <span style="color:rgba(255,255,255,.3)">|</span>
+    <span style="color:white;font-weight:700;font-size:14px">Dr. {{ doc.full_name }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="background:{% if appt.status == 'active' %}var(--success){% elif appt.status == 'completed' %}var(--gray-500){% else %}var(--warning){% endif %};color:white;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700">
+      {{ appt.status.upper() }}
+    </span>
+  </div>
+</div>
+
+<div class="consult-layout">
+  <!-- Chat Panel -->
+  <div class="chat-panel">
+    <div class="chat-topbar">
+      <div>
+        <div style="font-weight:700;font-size:15px;color:var(--dark)">{{ appt.user.full_name }}</div>
+        <div style="font-size:12px;color:var(--gray-500)">{{ appt.user.email }} • {{ appt.user.gender or 'N/A' }}</div>
+      </div>
+      {% if appt.symptoms_note %}
+      <div style="background:var(--warning-light);border:1px solid #FED7AA;border-radius:8px;padding:8px 12px;font-size:12px;color:#7c2d12;max-width:260px">
+        <strong>Patient Note:</strong> {{ appt.symptoms_note[:100] }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="chat-msgs" id="chatMsgs">
+      {% for m in messages %}
+      {% if m.sender_role == 'patient' %}
+      <div style="display:flex;flex-direction:column;align-items:flex-start">
+        <span style="font-size:11px;color:var(--gray-500);margin-bottom:3px;font-weight:600">{{ appt.user.full_name }}</span>
+        <div class="bubble-patient">{{ m.message }}</div>
+        <div class="msg-time">{{ m.timestamp.strftime('%H:%M') if m.timestamp else '' }}</div>
+      </div>
+      {% else %}
+      <div style="display:flex;flex-direction:column;align-items:flex-end">
+        <span style="font-size:11px;color:var(--gray-500);margin-bottom:3px;font-weight:600">Dr. {{ doc.full_name }} (You)</span>
+        <div class="bubble-doctor">{{ m.message }}</div>
+        <div class="msg-time" style="text-align:right">{{ m.timestamp.strftime('%H:%M') if m.timestamp else '' }}</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% if not messages %}
+      <div style="text-align:center;padding:40px;color:var(--gray-500)">
+        <div style="font-size:32px;margin-bottom:8px">💬</div>
+        <p>Consultation started. Say hello to your patient.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if appt.status == 'active' %}
+    <form method="post" action="/doctor/consultation/{{ appt.id }}/send" style="display:flex;gap:10px;padding:14px;border-top:1px solid var(--gray-200);background:white">
+      <input type="text" name="message" id="docMsgInput" class="form-control" placeholder="Type your message to patient..." required autocomplete="off" style="flex:1">
+      <button type="submit" class="btn btn-primary" style="border-radius:10px;padding:10px 18px">Send</button>
+    </form>
+    {% elif appt.status == 'completed' %}
+    <div style="padding:14px;border-top:1px solid var(--gray-200);background:var(--success-light);text-align:center;font-size:13px;color:var(--success);font-weight:600">
+      ✓ Consultation completed. Prescription issued.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Side Panel -->
+  <div class="side-panel">
+    <!-- Patient Info -->
+    <div class="card card-body" style="padding:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">Patient Info</div>
+      {% for label, val in [('DOB', appt.user.dob.strftime('%d %b %Y') if appt.user.dob else 'N/A'), ('Phone', appt.user.phone or 'N/A'), ('Gender', appt.user.gender or 'N/A'), ('Paid', '₹' + appt.fee_paid|string)] %}
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px">
+        <span style="color:var(--gray-500)">{{ label }}</span><span style="font-weight:600">{{ val }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if appt.status == 'active' %}
+    <!-- Prescription Form -->
+    <div class="card card-body rx-form" style="padding:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px">📋 Issue Prescription</div>
+      <form method="post" action="/doctor/consultation/{{ appt.id }}/prescribe" id="rxForm">
+        <div style="margin-bottom:10px">
+          <label style="font-size:12px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:4px">Diagnosis *</label>
+          <textarea name="diagnosis" rows="2" placeholder="e.g., Viral fever with body ache" required></textarea>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label style="font-size:12px;font-weight:600;color:var(--gray-700)">Medicines</label>
+            <button type="button" onclick="addMed()" style="font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:600">+ Add</button>
+          </div>
+          <div style="font-size:10px;color:var(--gray-500);margin-bottom:6px;display:grid;grid-template-columns:2fr 1fr 1.2fr 1fr 32px;gap:6px">
+            <span>Medicine</span><span>Dosage</span><span>Frequency</span><span>Duration</span><span></span>
+          </div>
+          <div id="medRows">
+            <div class="med-row">
+              <input type="text" name="medicine_names" placeholder="Paracetamol">
+              <input type="text" name="medicine_dosages" placeholder="500mg">
+              <input type="text" name="medicine_freqs" placeholder="3x/day">
+              <input type="text" name="medicine_durations" placeholder="5 days">
+              <button type="button" onclick="this.closest('.med-row').remove()" style="background:var(--danger-light);color:var(--danger);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <label style="font-size:12px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:4px">Instructions</label>
+          <textarea name="instructions" rows="3" placeholder="Rest for 2 days. Drink plenty of fluids. Avoid cold food..."></textarea>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:var(--gray-700);display:block;margin-bottom:4px">Follow-up Date</label>
+          <input type="text" name="follow_up" placeholder="e.g., After 5 days or 15 Jan 2025">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" onclick="return confirm('Issue prescription and close consultation?')">
+          📄 Issue Prescription & Close
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if appt.prescription and appt.prescription.pdf_path %}
+    <div class="card card-body" style="padding:16px;background:var(--success-light);border-color:#86efac">
+      <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:10px">✓ Prescription Issued</div>
+      <a href="/doctor/prescription/download/{{ appt.prescription.pdf_path }}" class="btn btn-success btn-block btn-sm">⬇ Download Prescription PDF</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function addMed() {
+  const row = document.createElement('div');
+  row.className = 'med-row';
+  row.innerHTML = `<input type="text" name="medicine_names" placeholder="Medicine name"><input type="text" name="medicine_dosages" placeholder="Dosage"><input type="text" name="medicine_freqs" placeholder="Frequency"><input type="text" name="medicine_durations" placeholder="Duration"><button type="button" onclick="this.closest('.med-row').remove()" style="background:var(--danger-light);color:var(--danger);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px">×</button>`;
+  document.getElementById('medRows').appendChild(row);
+}
+
+// Auto-scroll chat
+const msgs = document.getElementById('chatMsgs');
+if (msgs) msgs.scrollTop = msgs.scrollHeight;
+
+// Live polling for new messages
+{% if appt.status == 'active' %}
+let lastId = {{ messages[-1].id if messages else 0 }};
+setInterval(async () => {
+  const res = await fetch(`/doctor/consultation/{{ appt.id }}/messages.json?after=${lastId}`);
+  const data = await res.json();
+  if (data.messages.length) {
+    data.messages.forEach(m => {
+      if (m.role === 'patient') {
+        msgs.innerHTML += `<div style="display:flex;flex-direction:column;align-items:flex-start"><span style="font-size:11px;color:var(--gray-500);margin-bottom:3px;font-weight:600">{{ appt.user.full_name }}</span><div class="bubble-patient">${m.text}</div><div class="msg-time">${m.time}</div></div>`;
+      }
+      lastId = Math.max(lastId, m.id);
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}, 3000);
+{% endif %}
+
+document.getElementById('docMsgInput')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.closest('form').submit(); }
+});
+</script>
+</body></html>

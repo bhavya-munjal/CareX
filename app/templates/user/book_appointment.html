@@ -1,0 +1,98 @@
+{% extends "partials/base.html" %}
+{% block title %}Book Consultation{% endblock %}
+{% block page_title %}Book Consultation{% endblock %}
+{% block content %}
+<div style="max-width:680px;margin:0 auto">
+  <a href="/doctors" style="font-size:13px;color:var(--gray-500)">← Back to Doctors</a>
+
+  <!-- Doctor Card -->
+  <div class="card" style="margin-top:16px;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#2563EB,#0EA5E9);padding:24px;display:flex;align-items:center;gap:20px">
+      <div style="width:72px;height:72px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:white;border:3px solid rgba(255,255,255,.4);flex-shrink:0">
+        {{ doctor.full_name[0].upper() }}
+      </div>
+      <div>
+        <div style="color:white;font-size:20px;font-weight:800">Dr. {{ doctor.full_name }}</div>
+        <div style="color:rgba(255,255,255,.8);font-size:14px;margin-top:2px">{{ doctor.specialty }}{% if doctor.qualification %} • {{ doctor.qualification }}{% endif %}</div>
+        {% if doctor.experience_years %}<div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:4px">{{ doctor.experience_years }}+ years experience  ⭐ {{ doctor.rating }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+      <form method="post" action="/doctors/{{ doctor.id }}/pay" id="bookingForm">
+        <div class="form-group">
+          <label class="form-label">Describe your symptoms / reason for consultation</label>
+          <textarea name="symptoms_note" class="form-control" rows="4" placeholder="e.g., I have been experiencing severe back pain for 3 days, especially in the lower back. Also have mild fever..."></textarea>
+        </div>
+
+        <!-- Invoice Preview -->
+        <div style="background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:12px;padding:18px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:14px">📋 Invoice Summary</div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-200);font-size:14px">
+            <span style="color:var(--gray-700)">Consultation Fee</span>
+            <span style="font-weight:600">₹{{ doctor.fee|int }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-200);font-size:14px">
+            <span style="color:var(--gray-700)">Platform Fee (10%)</span>
+            <span style="font-weight:600">₹{{ platform_fee|int }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:17px;font-weight:800;color:var(--dark)">
+            <span>Total</span>
+            <span style="color:var(--primary)">₹{{ total|int }}</span>
+          </div>
+        </div>
+
+        <!-- Payment Simulation -->
+        <div style="background:var(--primary-light);border:1.5px solid var(--primary-border);border-radius:12px;padding:16px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:12px">💳 Payment Method (Simulation)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            {% for method, icon in [('UPI','📱'),('Credit Card','💳'),('Debit Card','🏧'),('Net Banking','🏦')] %}
+            <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--primary-border);border-radius:8px;cursor:pointer;background:white;font-size:13px;font-weight:500">
+              <input type="radio" name="payment_method" value="{{ method }}" {% if loop.first %}checked{% endif %} style="accent-color:var(--primary)">
+              {{ icon }} {{ method }}
+            </label>
+            {% endfor %}
+          </div>
+          <div style="font-size:11px;color:var(--gray-500);text-align:center">🔒 This is a payment simulation for demo purposes only</div>
+        </div>
+
+        <button type="button" onclick="simulatePay()" class="btn btn-primary btn-block btn-lg" id="payBtn">
+          🔒 Pay ₹{{ total|int }} & Confirm Booking
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Processing Modal -->
+<div id="payModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:20px;padding:40px;text-align:center;max-width:340px;width:90%;box-shadow:var(--shadow-lg)">
+    <div id="payStep1">
+      <div style="font-size:48px;margin-bottom:16px">💳</div>
+      <div style="font-size:18px;font-weight:800;color:var(--dark);margin-bottom:8px">Processing Payment</div>
+      <div style="font-size:14px;color:var(--gray-500);margin-bottom:20px">Please wait...</div>
+      <div style="height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden">
+        <div id="payBar" style="height:100%;background:var(--primary);border-radius:3px;width:0%;transition:width 2s ease"></div>
+      </div>
+    </div>
+    <div id="payStep2" style="display:none">
+      <div style="font-size:56px;margin-bottom:12px">✅</div>
+      <div style="font-size:18px;font-weight:800;color:var(--success);margin-bottom:6px">Payment Successful!</div>
+      <div style="font-size:14px;color:var(--gray-500)">Redirecting to your booking confirmation...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function simulatePay() {
+  const modal = document.getElementById('payModal');
+  modal.style.display = 'flex';
+  setTimeout(() => { document.getElementById('payBar').style.width = '100%'; }, 100);
+  setTimeout(() => {
+    document.getElementById('payStep1').style.display = 'none';
+    document.getElementById('payStep2').style.display = 'block';
+  }, 2200);
+  setTimeout(() => { document.getElementById('bookingForm').submit(); }, 3200);
+}
+</script>
+{% endblock %}

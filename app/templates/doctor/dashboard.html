@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Dashboard | CareBot</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+.doc-sidebar{width:240px;background:#0F172A;flex-shrink:0;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:100;transition:transform .25s ease}
+.doc-nav-item{display:flex;align-items:center;gap:10px;padding:11px 16px;color:rgba(255,255,255,.65);font-size:14px;font-weight:500;border-radius:8px;margin:2px 8px;transition:all .15s;text-decoration:none}
+.doc-nav-item:hover{background:rgba(255,255,255,.08);color:white}
+.doc-nav-item.active{background:var(--primary);color:white}
+.patient-card{background:white;border:1px solid var(--gray-200);border-radius:12px;padding:18px;transition:all .2s}
+.patient-card:hover{box-shadow:var(--shadow-md);border-color:var(--primary-border)}
+@media(max-width:768px){
+  .doc-sidebar{transform:translateX(-100%)}
+  .doc-sidebar.open{transform:translateX(0)}
+  .doc-main{margin-left:0!important}
+}
+</style>
+</head>
+<body style="background:var(--gray-50)">
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div style="display:flex;min-height:100vh">
+  <!-- Sidebar -->
+  <aside class="doc-sidebar" id="mainSidebar">
+    <div style="padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563EB"/><path d="M16 8v16M8 16h16" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+        <span style="color:white;font-size:15px;font-weight:800">CareBot</span>
+      </div>
+      <button class="sidebar-close" onclick="closeSidebar()" style="color:rgba(255,255,255,.5)">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <nav style="padding:12px 8px;flex:1">
+      <a href="/doctor/dashboard" class="doc-nav-item active">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+    </nav>
+    <!-- Sidebar bottom user card -->
+    <div style="padding:16px;border-top:1px solid rgba(255,255,255,.1)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="user-avatar" style="width:36px;height:36px;font-size:14px;background:var(--primary)">{{ doc.full_name[0].upper() }}</div>
+        <div style="min-width:0">
+          <div style="color:white;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">Dr. {{ doc.full_name }}</div>
+          <div style="color:rgba(255,255,255,.5);font-size:11px">{{ doc.specialty }}</div>
+        </div>
+      </div>
+      <a href="/doctor/logout" class="doc-nav-item" style="margin:0;background:rgba(255,255,255,.08)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="doc-main" style="margin-left:240px;flex:1">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="hamburger" onclick="openSidebar()">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title">Doctor Dashboard</div>
+      <div class="topbar-right">
+        <span style="font-size:11px;background:var(--success-light);color:var(--success);padding:4px 12px;border-radius:999px;font-weight:700">● Online</span>
+        <!-- Unified user menu -->
+        <div class="topbar-user-menu" id="userMenuWrap">
+          <button class="topbar-avatar" onclick="toggleUserMenu(event)" style="background:var(--success)" title="Dr. {{ doc.full_name }}">
+            {{ doc.full_name[0].upper() }}
+          </button>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-dropdown-header">
+              <div style="font-weight:700;font-size:14px;color:var(--dark)">Dr. {{ doc.full_name }}</div>
+              <div style="font-size:12px;color:var(--gray-500)">{{ doc.email }}</div>
+              <div style="font-size:11px;color:var(--success);font-weight:600;margin-top:2px">{{ doc.specialty }}</div>
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <a href="/doctor/logout" class="user-dropdown-item" style="color:var(--danger)">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Doctor info strip -->
+      <div class="welcome-banner" style="margin-bottom:24px">
+        <div>
+          <h2>Good day, Dr. {{ doc.full_name.split()[0] }}! 👨‍⚕️</h2>
+          <p>{{ doc.specialty }} • {{ doc.experience_years }} yrs exp • ₹{{ doc.fee|int }}/consultation</p>
+        </div>
+        <div class="welcome-tip">⭐ Rating: {{ doc.rating }}/5.0</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-card-header"><div class="stat-card-title">Awaiting</div><div class="stat-icon stat-icon-orange"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div></div>
+          <div class="stat-value">{{ pending|length }}</div>
+          <div class="stat-link">Paid, not accepted</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header"><div class="stat-card-title">Active Now</div><div class="stat-icon stat-icon-green"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
+          <div class="stat-value">{{ active|length }}</div>
+          <div class="stat-link">In consultation</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header"><div class="stat-card-title">Completed</div><div class="stat-icon stat-icon-blue"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+          <div class="stat-value">{{ completed_count }}</div>
+          <div class="stat-link">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header"><div class="stat-card-title">Total Earned</div><div class="stat-icon stat-icon-green"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div>
+          <div class="stat-value" style="font-size:20px">₹{{ total_earned|int }}</div>
+          <div class="stat-link">From completed</div>
+        </div>
+      </div>
+
+      <!-- Tabs: Pending / Active / History -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--gray-100);padding:4px;border-radius:8px;width:fit-content">
+        <button onclick="showTab('pending')" id="tab-pending" class="tab-btn active-tab">⏳ Awaiting ({{ pending|length }})</button>
+        <button onclick="showTab('active')" id="tab-active" class="tab-btn">🟢 Active ({{ active|length }})</button>
+        <button onclick="showTab('history')" id="tab-history" class="tab-btn">📋 History ({{ completed_count }})</button>
+      </div>
+
+      <!-- Pending -->
+      <div id="panel-pending">
+        {% if pending %}
+        <div style="display:flex;flex-direction:column;gap:12px">
+          {% for appt in pending %}
+          <div class="patient-card" style="border-left:3px solid var(--warning)">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="user-avatar" style="width:44px;height:44px;font-size:16px;flex-shrink:0">{{ appt.user.full_name[0].upper() }}</div>
+                <div>
+                  <div style="font-size:15px;font-weight:700;color:var(--dark)">{{ appt.user.full_name }}</div>
+                  <div style="font-size:12px;color:var(--gray-500)">{{ appt.user.email }} • {{ appt.user.gender or 'N/A' }}</div>
+                  <div style="font-size:12px;color:var(--success);font-weight:600;margin-top:2px">✓ Paid ₹{{ appt.fee_paid|int }} • {{ appt.created_at.strftime('%d %b %Y, %H:%M') if appt.created_at else '' }}</div>
+                </div>
+              </div>
+              <form method="post" action="/doctor/appointment/{{ appt.id }}/accept">
+                <button type="submit" class="btn btn-primary">Accept & Start →</button>
+              </form>
+            </div>
+            {% if appt.symptoms_note %}
+            <div style="margin-top:12px;background:var(--warning-light);border:1px solid #FED7AA;border-radius:8px;padding:10px 14px;font-size:13px;color:#7c2d12;line-height:1.5">
+              📝 <strong>Patient note:</strong> {{ appt.symptoms_note }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="card card-body" style="text-align:center;padding:60px;color:var(--gray-500)">
+          <div style="font-size:40px;margin-bottom:10px">📭</div>
+          <p>No pending appointments right now.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Active -->
+      <div id="panel-active" style="display:none">
+        {% if active %}
+        <div style="display:flex;flex-direction:column;gap:12px">
+          {% for appt in active %}
+          <div class="patient-card" style="border-left:3px solid var(--success)">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="user-avatar" style="width:44px;height:44px;font-size:16px;flex-shrink:0;background:var(--success)">{{ appt.user.full_name[0].upper() }}</div>
+                <div>
+                  <div style="font-size:15px;font-weight:700;color:var(--dark)">{{ appt.user.full_name }}</div>
+                  <div style="font-size:12px;color:var(--gray-500)">{{ appt.user.email }}</div>
+                  <div style="font-size:12px;color:var(--success);font-weight:600;margin-top:2px">🟢 In consultation</div>
+                </div>
+              </div>
+              <a href="/doctor/consultation/{{ appt.id }}" class="btn btn-success">Open Chat →</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="card card-body" style="text-align:center;padding:60px;color:var(--gray-500)">
+          <div style="font-size:40px;margin-bottom:10px">💬</div>
+          <p>No active consultations.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- History -->
+      <div id="panel-history" style="display:none">
+        {% if completed %}
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Patient</th><th>Date</th><th>Fee</th><th>Prescription</th><th>Action</th></tr></thead>
+              <tbody>
+              {% for appt in completed %}
+              <tr>
+                <td><div style="font-weight:600">{{ appt.user.full_name }}</div><div style="font-size:12px;color:var(--gray-500)">{{ appt.user.email }}</div></td>
+                <td style="font-size:13px;color:var(--gray-500)">{{ appt.created_at.strftime('%d %b %Y') if appt.created_at else '—' }}</td>
+                <td style="font-weight:600;color:var(--success)">₹{{ appt.fee_paid|int }}</td>
+                <td>
+                  {% if appt.prescription and appt.prescription.pdf_path %}
+                  <span class="badge" style="background:var(--success-light);color:var(--success)">✓ Issued</span>
+                  {% else %}
+                  <span class="badge" style="background:var(--gray-100);color:var(--gray-500)">None</span>
+                  {% endif %}
+                </td>
+                <td><a href="/doctor/consultation/{{ appt.id }}" class="btn btn-outline btn-sm">View</a></td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% else %}
+        <div class="card card-body" style="text-align:center;padding:60px;color:var(--gray-500)">
+          <div style="font-size:40px;margin-bottom:10px">📋</div>
+          <p>No completed consultations yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn{padding:8px 16px;border:none;background:transparent;border-radius:6px;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.active-tab{background:white;color:var(--primary);box-shadow:var(--shadow)}
+</style>
+<script>
+function showTab(id) {
+  ['pending','active','history'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = t===id?'':'none';
+    document.getElementById('tab-'+t).className = 'tab-btn'+(t===id?' active-tab':'');
+  });
+}
+function openSidebar()  { document.getElementById('mainSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('active'); }
+function closeSidebar() { document.getElementById('mainSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+function toggleUserMenu(e) { e.stopPropagation(); document.getElementById('userDropdown').classList.toggle('open'); }
+document.addEventListener('click', function() { document.getElementById('userDropdown')?.classList.remove('open'); });
+</script>
+</body>
+</html>
